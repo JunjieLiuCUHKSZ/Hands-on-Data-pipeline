@@ -5,8 +5,8 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
-ORDER_FILE = DATA_DIR / "order.txt"
-CUSTOMER_FILE = DATA_DIR / "customer.txt"
+ORDER_FILE_PATTERN = "order*.txt"
+CUSTOMER_FILE_PATTERN = "customer*.txt"
 DATABASE_FILE = BASE_DIR / "clean_and_merge.db"
 
 CURRENCY_TO_CNY = {
@@ -28,6 +28,13 @@ def read_txt_csv(path):
             }
             for row in reader
         ]
+
+
+def read_txt_csv_files(pattern):
+    rows = []
+    for path in sorted(DATA_DIR.glob(pattern)):
+        rows.extend(read_txt_csv(path))
+    return rows
 
 
 def remove_duplicates(rows, key):
@@ -136,8 +143,11 @@ def write_database(merged_rows, database_path):
 
 
 def main():
-    orders = read_txt_csv(ORDER_FILE)
-    customers = read_txt_csv(CUSTOMER_FILE)
+    orders = read_txt_csv_files(ORDER_FILE_PATTERN)
+    customers = read_txt_csv_files(CUSTOMER_FILE_PATTERN)
+
+    print("Order files: " + ", ".join(path.name for path in sorted(DATA_DIR.glob(ORDER_FILE_PATTERN))))
+    print("Customer files: " + ", ".join(path.name for path in sorted(DATA_DIR.glob(CUSTOMER_FILE_PATTERN))))
 
     orders = remove_duplicates(orders, "order_id")
     customers = remove_duplicates(customers, "customer_id")
